@@ -8,8 +8,9 @@ public class RedBlackTree<Key extends Comparable<Key>, Value> implements Dynamic
 	
 	private String dataStructureName;
 	private TreeMap<Key, Value> tree;
+   
 	public RedBlackTree(String dataStructureName)
-	{
+	{       
 		tree = new TreeMap<Key, Value>();
 		this.dataStructureName = dataStructureName;
 	}
@@ -29,19 +30,19 @@ public class RedBlackTree<Key extends Comparable<Key>, Value> implements Dynamic
 	@Override
 	public Value insert(Key key, Value value) {
 		
-		return (Value)tree.put(key, value);
+		return tree.put(key, value);
 	}
 
 	@Override
 	public Value delete(Key key) {
 		
-		return (Value)tree.remove(key);
+		return tree.remove(key);
 	}
 
 	@Override
 	public Value retrieve(Key key) {
 		
-		return (Value)tree.get(key);
+		return tree.get(key);
 	}
 
 	@Override
