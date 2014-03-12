@@ -33,7 +33,16 @@ public class Main {
 	public static ArrayList<String> loadData(String arg){
             ArrayList<String> mydata = new ArrayList<String>();
             File file = new File(arg);
-            
+            System.out.println("******************************************************************");
+            System.out.println("|    Welcome to ICS311 DynamicSet Test       by Vinson Gao       |");
+            System.out.println("******************************************************************");
+            System.out.printf("%-15s"," Argument input");
+            System.out.printf("%-10s",":");
+            System.out.printf("%-10s",arg+"\n");
+            System.out.printf("%-15s"," Input file path");
+            System.out.printf("%-10s",":");
+            System.out.printf("%-10s",file.getAbsolutePath()+"\n");
+            System.out.println("******************************************************************\n");
             try(BufferedReader br = new BufferedReader(new FileReader(file))) {
 
                         for(String line; (line = br.readLine()) != null; )

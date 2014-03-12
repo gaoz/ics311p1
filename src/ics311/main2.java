@@ -16,7 +16,7 @@ public class main2 {
 	public static void main(String[] args) {
 		
 		File file = new File(args[0]);
-       
+                
 		try(BufferedReader br = new BufferedReader(new FileReader(file))) 
 		{
 		    for(String line; (line = br.readLine()) != null; )
