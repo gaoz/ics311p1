@@ -81,6 +81,9 @@ public class Main {
                             case maximum:
                                 set.maximum();
                                 break;
+                            case delete:
+                                set.delete(d);
+                                break;
 
                         }
                             
@@ -131,8 +134,8 @@ public class Main {
         }
                 
         public enum Method {
-            insert, retrieve, predecessor, successor,
-            minimum, maximum, delete
+            insert, retrieve, predecessor, successor, delete,
+            minimum, maximum
         }
         
         
@@ -145,20 +148,24 @@ public class Main {
                 ArrayList<DynamicSet<String, String>> sets = new ArrayList<DynamicSet<String, String>>();
                 long[][] timeTable = new long[4][17];
                 
-		DynamicSet<String, String> redBlackTree  = new RedBlackTree<String,String>("RedBlackTree");
-		SkipListInterface skipList = new SkipList();
+		DynamicSet<String, String> redBlackTree  = new RedBlackTree<String,String>("RBtree");
+		DynamicSet<String, String> skiplist = new SkipList<String, String>("Skiplist");
                 BinarySearchTree btree = new BinarySearchTree( );
                 SortedDoubleLinkedList sortedDoubleLinkedList = new SortedDoubleLinkedList();
                 
+                sets.add(redBlackTree);
+                sets.add(skiplist);
+                sets.add(redBlackTree);
                 sets.add(redBlackTree);
                 
                 
                 /****************************************************************************************************
                  *                                     run time test
                 *****************************************************************************************************/
+                int ii =0 ;
                 for(DynamicSet<String, String> set: sets){
                     
-                    int i =0 ;
+                    
                     int j =0 ;
                     long[] pack = new long[3];
                     for(Method m: Method.values()){
@@ -167,16 +174,16 @@ public class Main {
                             case retrieve: case predecessor: case successor: case delete:
                                 pack = call(set, randomedData, m);
                                 
-                                timeTable[i][j]= pack[0];  j=j+1;
-                                timeTable[i][j]= pack[1];  j=j+1;
-                                timeTable[i][j]= pack[2];  j=j+1;
+                                timeTable[ii][j]= pack[0];  j=j+1;
+                                timeTable[ii][j]= pack[1];  j=j+1;
+                                timeTable[ii][j]= pack[2];  j=j+1;
                                 
                                 break;
                             
                             case minimum: case maximum:
                                 
                                 long time = call2(set, m);
-                                timeTable[i][j]= time;  
+                                timeTable[ii][j]= time;  
                                 j=j+1;
                                 
                                 
@@ -185,9 +192,9 @@ public class Main {
                             default:
                                 pack = call(set, datas, m);
                                 
-                                timeTable[i][j]= pack[0];  j=j+1;
-                                timeTable[i][j]= pack[1];  j=j+1;
-                                timeTable[i][j]= pack[2];  j=j+1;
+                                timeTable[ii][j]= pack[0];  j=j+1;
+                                timeTable[ii][j]= pack[1];  j=j+1;
+                                timeTable[ii][j]= pack[2];  j=j+1;
                                 
                                 break;
                         }
@@ -204,18 +211,73 @@ public class Main {
 //                        System.out.println("");
 
                     }// end of for loop of Method: insert, retrieve....
-                    i=i+1;
+                    ii=ii+1;
 
                         
                 }// end of looping tree sets
-//                
+//              
+                String width1 = "30s";
+                String width2 = "10s";
+                String width3 = "---------*";
+                System.out.printf("%-15s",  "*--------------" );
+                System.out.printf("%-"+width1+"","*-----------------------------");
+                System.out.printf("%-"+width1+"","*-----------------------------");
+                System.out.printf("%-"+width1+"","*-----------------------------");
+                System.out.printf("%-"+width1+"","*-----------------------------");
+                System.out.printf("%-"+width1+"","*-----------------------------*");
+                System.out.printf("%-"+width2+"", width3);
+                System.out.printf("%-"+width2+"", width3);
+                System.out.println("");
+                System.out.printf("%-15s",  "|   Output" );
+                System.out.printf("%-"+width1+"", "|         Insert");
+                System.out.printf("%-"+width1+"", "|         Retrieve");
+                System.out.printf("%-"+width1+"", "|         Predecessor");
+                System.out.printf("%-"+width1+"", "|         Successor");
+                System.out.printf("%-"+width1+"", "|         Delete");
+                System.out.printf("%-"+width2+"", "| Miminum");
+                System.out.printf("%-"+width2+"", "| Maximum");
+                System.out.printf("%-"+width2+"", "|");
+                System.out.println("");
+                System.out.printf("%-15s",  "*--------------" );
+                System.out.printf("%-"+width1+"", "*-----------------------------");
+                System.out.printf("%-"+width1+"", "*-----------------------------");
+                System.out.printf("%-"+width1+"", "*-----------------------------");
+                System.out.printf("%-"+width1+"", "*-----------------------------");
+                System.out.printf("%-"+width1+"", "*-----------------------------*");
+                System.out.printf("%-"+width2+"", width3);
+                System.out.printf("%-"+width2+"", width3);
+                System.out.println("");
                 for(int i=0; i<4; i++){
-                                for(int j=0; j<17; j++){
-                                    System.out.print(timeTable[i][j]+" ");
-
-                                }
-                                System.out.println("");
-                }                     
+                    System.out.printf("%-15s",  "|   "+sets.get(i).setDataStructure()  );
+                    System.out.printf("%-"+width2+"", "|"+timeTable[i][0]);
+                    System.out.printf("%-"+width2+"", "/"+timeTable[i][1]);
+                    System.out.printf("%-"+width2+"", "/"+timeTable[i][2]);
+                    System.out.printf("%-"+width2+"", "|"+timeTable[i][3]);
+                    System.out.printf("%-"+width2+"", "/"+timeTable[i][4]);
+                    System.out.printf("%-"+width2+"", "/"+timeTable[i][5]);
+                    System.out.printf("%-"+width2+"", "|"+timeTable[i][6]);
+                    System.out.printf("%-"+width2+"", "/"+timeTable[i][7]);
+                    System.out.printf("%-"+width2+"", "/"+timeTable[i][8]);
+                    System.out.printf("%-"+width2+"", "|"+timeTable[i][9]);
+                    System.out.printf("%-"+width2+"", "/"+timeTable[i][10]);
+                    System.out.printf("%-"+width2+"", "/"+timeTable[i][11]);
+                    System.out.printf("%-"+width2+"", "|"+timeTable[i][12]);
+                    System.out.printf("%-"+width2+"", "/"+timeTable[i][13]);
+                    System.out.printf("%-"+width2+"", "/"+timeTable[i][14]);
+                    System.out.printf("%-"+width2+"", "|"+timeTable[i][15]);
+                    System.out.printf("%-"+width2+"", "|"+timeTable[i][16]);
+                    System.out.printf("%-"+width2+"", "|");
+                    System.out.println("");
+                }    
+                System.out.printf("%-15s",  "*--------------" );
+                System.out.printf("%-"+width1+"", "*-----------------------------");
+                System.out.printf("%-"+width1+"", "*-----------------------------");
+                System.out.printf("%-"+width1+"", "*-----------------------------");
+                System.out.printf("%-"+width1+"", "*-----------------------------");
+                System.out.printf("%-"+width1+"", "*-----------------------------*");
+                System.out.printf("%-"+width2+"", width3);
+                System.out.printf("%-"+width2+"", width3);
+                System.out.println("");
             }// end of main
 
 }// end of class
