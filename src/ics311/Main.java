@@ -146,11 +146,12 @@ public class Main {
                 
 		DynamicSet<String, String> redBlackTree  = new RedBlackTree<String,String>("RBtree");
 		DynamicSet<String, String> skiplist = new SkipList<String, String>("Skiplist");
-                BinarySearchTree btree = new BinarySearchTree( );
-                SortedDoubleLinkedList sortedDoubleLinkedList = new SortedDoubleLinkedList();
+                //DynamicSet<String, String> btree = new BinarySearchTree<String, String>("Btree");
+                //DynamicSet<String, String> SortedDLL = new SortedDoubleLinkedList("DLList");
                 
                 sets.add(redBlackTree);
                 sets.add(skiplist);
+                //sets.add(btree);
                 sets.add(skiplist);
                 sets.add(skiplist);
                 
@@ -259,6 +260,22 @@ public class Main {
                 System.out.printf("%-"+width2+"", width3);
                 System.out.printf("%-"+width2+"", width3);
                 System.out.println("");
+                
+                DynamicSet<String, String> bst = new BinarySearchTree<String, String>("Btree");
+                bst.insert("6", "6");
+                bst.insert("2", "2");
+                bst.insert("4", "3");
+                bst.insert("8", "4");
+                bst.insert("9", "9");
+                bst.insert("10", "10");
+                bst.insert("11", "11");
+                
+                System.out.println(bst.size());
+                System.out.println(bst.minimum().getKey());
+                System.out.println(bst.maximum().getKey());
+                
+                
+                
             }// end of main
 
 }// end of class

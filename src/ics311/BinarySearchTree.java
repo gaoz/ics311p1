@@ -1,453 +1,277 @@
 package ics311;
-/*
- * BST implementation in which insertion and deletion are accomplished by
- * recursive algorithms (insertion after Carrano, deletion after Weiss).
 
- * Data Structure (class) BST --- binary search tree
- * public member functions:
- *    constructor --- for the tree itself
- *    clear       --- empty out the tree
- *    walk        --- traverse the data structure, showing the values
- *                    in increasing order.
- *    pretty      --- Display the tree structure (level-order traversal)
- *    insert      --- insert one cell into the data structure
- *    find        --- find, based on data value; returns pointer to cell
- *    delete      --- remove one cell from the data structure
- *    avgDepth    --- average depth of all tree nodes
- *    height      --- height of the entire tree
- *    size        --- number of nodes in the tree
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
- * Additional classes used:
- *   BSTnode: single binary search tree node.
- *   Wrapper: in the pretty-printing, the int field is the tree level
- *
- * @author   Timothy J. Rolfe
- * Version 2010 October 22
- */
+public class BinarySearchTree<Key extends Comparable<Key>, Value> implements DynamicSet<Key, Value> {
 
-import java.util.*;     // Deque, ArrayDeque
+	private class BSTnode
+        {   Key key;  
+            Value value;
+            BSTnode left,right,parent; 
 
-@SuppressWarnings("unchecked")
-public class BinarySearchTree
-{
-   /**
-    * Binary search tree node
-    *
-    *    data area   --- generic Comparable
-    *    height      --- height within the tree of THIS node
-    *    size        --- number of nodes in this (sub)tree
-    *    util        --- miscellaneous int value, should we every need it
-    *    left link   --- left subtree
-    *    right link  --- right subtree
-    *
-    * The outer class has full access to this embedded class's fields.
-
-    */
-   static class BSTnode
-   {  Comparable data;   // Realistic case, this could be quite large
-      int        height; // Height of THIS NODE
-      int        size;   // Number of nodes in this (sub)tree
-      int        util;   // Generic utility area for an int value
-      BSTnode    left,   // "<" subtree
-                 right;  // ">" subtree
-
-      BSTnode ( Comparable data ) // Constructor for leaf node
-      {  this.data   = data;
-         this.height = 0;         // Leaf node has height zero
-         this.size   = 1;
-         this.left   = null;
-         this.right  = null;
-      }
-   }
-
-// Instance fields:
-
-   protected BSTnode root = null,
-                     current = null;   // Spare reference for processing
-   private int nItems;                 // Used in the protected tree walk
-   private BSTnode free = null;        // nodes for re-use
-
-// Class fields:
-
-// ? ? Show nodes on recycling ? ?
-   protected static final boolean DEBUG  = false;
-// ? ? Enforce unique keys ? ?
-   protected static final boolean UNIQUE = false;
-
-// no constructor needed:  root and free initialized to null already
-
-//  ************** Over-all tree characteristics **************  //
-/*
- * Tree size --- available as root.size, if there is a root
- */
-   public int size()
-   {  return root == null ? 0 : root.size;  }
-/*
- * Tree height == number of levels in the tree = root height
- */
-   public int height()       // root = null means empty = -1
-   {  return root == null ? -1 : root.height;  }
-/*
- * Average node depth
- */
-   public double avgDepth()
-   {  if ( root == null )
-         return -1;     // Root as level zero forces this
-      else   // root as level zero goes here
-         return sumDepths(root, 0) / root.size;
-   }
-// Total all depths of nodes within the tree:
-   double sumDepths(BSTnode node, int deep)
-   {  if (node == null)
-         return 0;      // Empty node does not contribute
-      else
-         return deep
-              + sumDepths (node.left, deep+1)
-              + sumDepths (node.right, deep+1);
-   } // end sumDepths()
-
-////******************* Simple Find *******************////
-   /**
-    * Find the cell with the data field corresponding to Value
-    */
-   Comparable find(Comparable value)
-   {  current = root;
-      while ( current != null && !current.data.equals(value) )
-      {  if (value.compareTo(current.data) < 0)
-            current = current.left;
-         else
-            current = current.right;
-      }
-
-      return current == null ? null : current.data;
-   }
-   Comparable successors(Comparable value)
-   {  current = root;
-      while ( current != null && !current.data.equals(value) )
-      {  if (value.compareTo(current.data) < 0)
-            current = current.left;
-         else
-            current = current.right;
-      }
-       current = current.right;
-      
-      return current == null ? null : current.data;
-   }
-   
-   Comparable predcessors(Comparable value)
-   {  current = root;
-      while ( current != null && !current.data.equals(value) )
-      {  if (value.compareTo(current.data) < 0)
-            current = current.left;
-         else
-            current = current.right;
-      }
-       current = current.left;
-      
-      return current == null ? null : current.data;
-   }
-
-//  ************** Tree modifier methods **************  //
-/*
- * Empty out the tree.  The "autumn" method recycles the nodes
- * to save on garbage collection expense.
- */
-   public void clear()
-   {  autumn(root);  root = null;  }
-
-   // All the leaf (nodes) fall . . . recursively
-   void autumn (BSTnode node)
-   {  if ( node != null )
-      {  autumn(node.left);  // post-order traversal
-         autumn(node.right);
-         recycle(node);      // This is now a leaf.  Goodbye!
-      }
-   } // end autumn()
-
-/*
- * Insertion in the BST
- */
-// Insert the value into its proper place in the binary search tree
-   public void insert(Comparable value)
-   {  root = insert(root, value);  }
-
-// Recursive insertion, returning reference to subtree generated.
-   BSTnode insert(BSTnode node, Comparable value)
-   {  if ( node == null )
-         node = build(value);
-      else if ( value.compareTo(node.data) < 0 )
-         node.left  = insert (node.left, value);
-      // ***** If equal keys allowed, place them right *****
-      else if ( ! UNIQUE )
-         node.right = insert (node.right, value);
-      // ***** Equal keys must be FORBIDDEN *****
-      else if ( value.compareTo(node.data) > 0 )
-         node.right = insert (node.right, value);
-      // ***** If equal keys are NOT allowed, ERROR  *****
-      else
-      {  System.err.println (value + " is already in.");
-      } // end if/else if/else if/else if/else
-   // Correct this node's height and size after the insertion.
-   // The correction propagates upwards in the recursive call stack.
-      node.height = newHt(node);
-      node.size = newSize(node);
-      return node;
-   } // end insert(BSTnode, Comparable)
-
-//  ******************* Deletion *******************  ///
-
-// Fields required as stable in delete(BSTnode, int)
-   BSTnode deleteNode, lastNode;
-
-/*
- * Delete the node with the value passed.
- */
-   public void delete(Comparable value)
-   {  deleteNode = null;  lastNode = null;
-      root = delete(root, value);
-   }
-
-// Interchange the .data fields on two BSTnodes passed
-   static void swapData (BSTnode d, BSTnode s)
-   {  Comparable temp = d.data;  d.data = s.data;  s.data = temp; }
-
-   BSTnode delete(BSTnode node, Comparable value)
-   {  if ( node == null ) return null;
-
-      lastNode = node;                      // Reference to LAST node seen
-      if ( value.compareTo(node.data) < 0 )
-         node.left = delete (node.left, value);
-      else
-      {//When we FIND the node and take one step right, all subsequent
-       //steps will be left --- down to the in-order successor
-         deleteNode = node;                 // Potentially the node to go
-         node.right = delete (node.right, value);
-      }
-
-   // In the returns, the call where we are dealing with the replacement
-      if ( node == lastNode )
-      {//Check to see if we indeed DID find the value
-         if ( deleteNode != null && value.equals(deleteNode.data) )
-         {//Final check:  if node is RIGHTMOST in its subtree
-            if ( deleteNode == lastNode )   // Half-nodes are easy!
-            {  node = node.left;            // Return left subtree
+            BSTnode ( Key k, Value v ) // Construction only of leaf nodes.
+            {   this.key  = k;
+                this.value= v;
+                this.left = this.right = null;
             }
-          //node is NOT rightmost in its subtree.  Copy replacement up.
-            else
-            {  swapData (deleteNode, lastNode);
-               node = node.right;           // Return right subtree
-            }
-            recycle (lastNode);             // Return the node for re-use
-         }
-      }
-      else  // Adjust heights on the way back up the recursive stack
-      {  node.height = newHt(node);
-         node.size = newSize(node);
-      }
-      return node;
-   }
+        } // end class BSTnode
+
+	private String dataStructureName;
+	private BSTnode root;
+        private int size;
    
+	public BinarySearchTree(String dataStructureName)
+	{       size = 0;
+		root = null;
+		this.dataStructureName = dataStructureName;
+	}
+	
+	@Override
+	public String setDataStructure() {
+		
+		return dataStructureName;
+	}
 
-//  ******************* Recursive traversal *******************  //
-/*
- * Walk through the tree; display is to be ascending order
- */
-   public void walk()
-   {  if (root != null)
-      {  nItems = 0;
-         inOrder(root);
-         // Check whether final '\n' is required.
-         if (nItems % 10 != 0)
-            System.out.println();
-      }
-   } // end walk()
+	@Override
+	public int size() {
+		this.print();
+		return size;
+	}
+       
+        
+	@Override
+	public Value insert( Key k, Value v)
+        {       
+                int compare = 0;
+                
+                if(root == null){
+                    
+                    root = new BSTnode(k,v);
+                    
+                }else{
+                    BSTnode current= root;
+            
+                    while ( current != null )                   // Continue to failure
+                    {
+                        compare = current.key.compareTo(k);
 
-   // To get ascending order, do an in-order traversal of the tree
-   void inOrder(BSTnode item)
-   {  if ( item == null) return;            // I.e., empty tree
+                        if ( compare < 0 ){             // Down left
 
-      inOrder(item.left);                   // Process left sub-tree
-      System.out.printf("%4s(%d)", item.data,item.height);
-      if ( ++nItems % 10 == 0 )
-         System.out.println();
-      inOrder(item.right);                  // Process right sub-tree
-   }
-   public Comparable first()
-   {  if (root != null)
-      {  nItems = 0;
-         getfirst(root);
-         
-      }
-      return record.data;
-   } 
-   private BSTnode record;
-   void getfirst(BSTnode item)
-   {  if ( item == null) return ;  
-      if(item.left != null ){
-        getfirst(item.left); 
-      }else{
-        record = item;
-      }   // Process left sub-tree
-                       // Process right sub-tree
-   }
-   public Comparable last()
-   {  if (root != null)
-      {  nItems = 0;
-         getlast(root);
-         
-      }
-      return record.data;
-   } 
-   private BSTnode record2;
-   void getlast(BSTnode item)
-   {  if ( item == null) return ;  
-      if(item.right != null ){
-        getfirst(item.right); 
-      }else{
-        record2 = item;
-      }   // Process left sub-tree
-                       // Process right sub-tree
-   }
+                            if( current.left == null){
+                                current.left = new BSTnode(k, v);
+                                current.left.parent = current;
+                                break;
 
-//  ******************* NON-Recursive traversal *******************  //
-/*
- *  Display the BST horizontally --- based on a level-order traversal
- */
-   // Keep track of position on the line across calls to setPos
-   static int skip;
-   public void pretty()
-   {  skip = 0;
+                            }else{
+                                current = current.left;
+                            }
+                        }
+                        else if ( compare > 0 )         // Down right
+                        {    if( current.right == null){
+                                current.right = new BSTnode(k, v);
+                                current.right.parent = current;
+                                break;
 
-      if ( root == null )  // Nothing to display!
-      {  System.out.println ("Empty tree!"); return;  }
+                            }else{
+                                current = current.right;
+                            }
+                        }
+                        else{    
+                            Value oldValue = current.value;
+                            current.value = v;
+                            return oldValue; 
+                        }   // so exit loop
+                    }
+                }
+                size++;
+                return null;
+                
+               
+        } // end insert()
+        public void print(){
+            System.out.println(root.key.toString());
+            System.out.println(root.left.key.toString());
+            System.out.println(root.left.left.key.toString());
+        }
+	@Override
+	public Value delete(Key key) {
+		
+                BSTnode current = find(key);
+                
+                if(current == null){
+                    return null;
+                }
+                
+                
+                else if(current.left == null && current.right == null){
+                    if(current.parent.right == current){
+                        current.parent.right = null;
+                    }else{
+                        current.parent.left = null;
+                    }
+                    return current.value;
+                    
+                }else if(current.left != null && current.right == null){
+                    if(current.parent.right == current){
+                        current.left.parent = current.parent;
+                    }else{
+                        current.left.parent = current.parent;
+                    }
+                    return current.value;
+                    
+                }else if(current.right != null && current.left == null){
+                     if(current.parent.left == current){
+                        current.right.parent = current.parent;
+                    }else{
+                        current.left.parent = current.parent;
+                    }
+                    return current.value;
+                    
+                    
+                }else {
+                    BSTnode node  = getMinimum(current);
+                    Key k = node.key;
+                    Value v = node.value;
+                    delete(node.key);
+                    Value value = current.value;
+                    current.key = k;
+                    current.value = v ;
+                    return value;
+                    
+                }
+                
+                
+		
+	}
 
-      setPos (root);       // Find line position for each node
-      pretty (root);       // level-order traversal displaying the nodes
-   } // end pretty()       // one line for each level, in proper position
+	@Override
+	public Value retrieve(Key key) {
+		return null;
+		//return find(key).value;
+	}
+        
+        private BSTnode find ( Key key )
+        {       
+                BSTnode current = root;
+                int compare = 0;
+                while ( current != null )                   // Continue to failure
+                {
+                    compare = current.key.compareTo(key);
+                    
+                    if ( compare < 0 )             // Down left
+                        current = current.left;
+                    
+                    else if ( compare > 0 )// Down right
+                        current = current.right;
+                    
+                    else                               // We GOT it!
+                        break;                             // so exit loop
+                }
 
-   // Find line position for each node --- based on in-order traversal
-   void setPos (BSTnode node)
-   {//If the nodes were all printed on one line, their order is based
-   // on an in-order traversal.  skip shows number of positions to skip
-   // to properly position the node.  Note that this MUST be a class
-   // data member --- the root depends on skip to come back with the
-   // size of the entire left subtree, for instance.
-      if ( node != null )
-      {  setPos (node.left);
-         node.util = skip;        // Store skip value in util data member
-         skip += 2;               // Update for printing THIS node
-         setPos (node.right);
-      } // end if
-   } // end setPos()
+                return current;
+        }
+        /*
+        BSTnode find ( BSTnode node, Object value )
+        {  BSTnode found = node;
 
-   // We need to retain information on tree level in a queue of BSTnodes.
-   static class Wrapper
-   {  int level;
-      BSTnode node;
+        // Node exists, but it is not the correct one.  NOTE:  it is critical that
+        // the base class "equals" of Object be overridden as appropriate.
+        if ( node != null && !value.equals(node.data) )
+        {
+            found = find ( node.left, value );   // Search left first
+            if ( found == null )                 // Failed to find on left
+                found = find( node.right, value );// so search right
+        }
 
-      Wrapper(BSTnode node, int level)
-      {  this.level = level; this.node = node;  }
-   }
+        return found;
+        }
+        
+        */
+	@Override
+	public Entry<Key, Value> minimum() {
+            
+                BSTnode node = getMinimum(root);
+              
+                if(node==null){
+                    return null;
+                }else {
+                     return new SetEntry(node.key, node.value);
+                }
+        	
+	}
+        private BSTnode getMinimum(BSTnode search){
+                BSTnode current = search;
+                if(current==null){
+                    return null;
+                }
+                while(current.left != null){
+                    
+                    current.left = current;
+                    
+                    return current;
+                }
+                return current;
+        }
+        
+	@Override
+	public Entry<Key, Value> maximum() {
+                BSTnode node = getMaximum(root);
+              
+                if(node==null){
+                    return null;
+                }else {
+                     return new SetEntry(node.key, node.value);
+                }
+                
+	}
+        public BSTnode getMaximum(BSTnode search) {
+               BSTnode current = search;
+                if(current==null){
+                    return null;
+                }
+                while(current.left != null){
+                    
+                    current.left = current;
+                    
+                    return current;
+                }
+                return current;
+	}
+        
+        
+        private Entry<Key, Value> j;
+        
+	@Override
+	public Entry<Key, Value> successor(Key key) {
+		BSTnode current = find(key) ;
+                BSTnode answer;
+                if(current.parent.left == current ){  // case 1 on left subtree
+                     
+                    if(current.right==null){
+                        answer = current.parent;
+                    }else{
+                        answer = getMinimum(current.right);
+                    }
+                    
+                    
+                }else{                                 // case 2 on right subtree
+                    if(current.right==null){
+                        return null;
+                    }else{
+                        answer = getMinimum(current.right);
+                    }
+                    
+                    
+                }
+                
+		return new SetEntry(answer.key, answer.value);
+	}
 
-// Pretty-print:  each tree level prints on one line, with the node
-// horizontally positioned to be visually the parent of its children.
-   void pretty (BSTnode node)
-   {//work queue during traversal
-      Deque<Wrapper> queue = new ArrayDeque<Wrapper>();
+	@Override
+	public Entry<Key, Value> predecessor(Key key) {
+		
+		return j;
+	}
 
-      int   position = 0,           // position in output line
-            level = 1,              // level being processed
-            current;                // value for node ABOUT to process
-
-   // level-order traversal:  initialize the work queue with the root
-      queue.offer(new Wrapper(node, level));// node initially IS the root
-
-      while ( ! queue.isEmpty() )     // Go there's nothing left to do!
-      {  Wrapper item = queue.remove();
-         node    = item.node;
-         current = item.level;
-         if (node.left != null)     // Enqueue child nodes
-            queue.offer(new Wrapper(node.left, current+1));
-         if (node.right != null)
-            queue.offer(new Wrapper(node.right, current+1));
-   //    Check for line-break:  change in tree level
-         if ( current != level )
-         {  System.out.println();
-            position = 0;
-            level = current;
-         }
-   //    skip over to proper position
-         for ( ; position < node.util ; position++ )
-            System.out.print (" ");
-         System.out.printf ("%2s", node.data);
-         position += 2;    // Update position for the output just done
-      } // end while
-      System.out.println();      // Final line termination.
-   } // end pretty(BSTnode)
-
-//  ******************* Utility functions *******************  //
-
-// Return the height based on the children; node must NOT be null.
-   static int newHt ( BSTnode node )
-   {  BSTnode lt = node.left,
-              rt = node.right;
-
-      if ( lt == null && rt == null )     // Leaf node is height zero
-         return 0;
-      else if ( lt == null )              // Half node cases
-         return 1 + rt.height;
-      else if (rt == null )
-         return 1 + lt.height;
-      else                                // Full node --- need java.lang.Math.max
-         return 1 + Math.max(lt.height, rt.height);
-   } // end newHt()
-
-// Return the size based on the children; node must NOT be null.
-   static int newSize( BSTnode node )
-   {  BSTnode lt = node.left,
-              rt = node.right;
-
-      if ( lt == null && rt == null )     // Leaf node has size 1
-         return 1;
-      else if ( lt == null )              // Half node cases
-         return 1 + rt.size;
-      else if (rt == null )
-         return 1 + lt.size;
-      else                                // Full node --- do the sum
-         return 1 + lt.size + rt.size;
-   } // end newSize()
-
-//  ************** free-space list mainenance ******************  //
-
-// Generate a node, either re-using from the free list or constructed
-   BSTnode build( Comparable data )
-   {  BSTnode rtn;
-
-      if (free == null)
-      {  rtn = new BSTnode (data);
-         if ( rtn == null )
-         {  System.err.println ("ALLOCATION ERROR.  Abort execution.");
-            System.exit(7);
-         }
-      }
-      else
-      {  rtn = free;
-         free = free.right;
-         rtn.data = data;
-         rtn.height = 0;
-         rtn.size = 1;    // Leaf node
-         rtn.left = null; rtn.right = null;
-      }
-      return rtn;
-   }
-
-// push node onto free list.
-   void recycle( BSTnode node )
-   {  if ( DEBUG )
-         System.out.println ("Recycling node \"" + node.data + '"');
-      node.left   = null;
-      node.right  = free;
-      free = node;
-   } // end recycle
-
-} // end class BST
+}
